@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:e_cycle/constants/colors.dart';
 import 'package:e_cycle/models/news.dart';
@@ -8,9 +9,48 @@ import 'package:e_cycle/screens/notification/notification_page.dart';
 import 'package:e_cycle/screens/widgets/card_home.dart';
 import 'package:e_cycle/screens/widgets/fitur_unggulan.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+import 'package:e_cycle/screens/withdraw/withdraw.dart';
+import 'package:badges/badges.dart' as badges;
+
+class Home extends StatefulWidget {
+  final User user;
+
+  const Home({super.key, required this.user});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  Stream<DocumentSnapshot> _userPointsStream() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.user.uid)
+        .snapshots();
+  }
+
+  Stream<int> _unreadNotificationsCount() {
+    return FirebaseFirestore.instance
+        .collection('notifications')
+        .doc(widget.user.uid)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) {
+        return 0;
+      }
+      final data = snapshot.data() as Map<String, dynamic>;
+      int unreadCount = 0;
+      data.forEach((key, value) {
+        if (value['isRead'] == false) {
+          unreadCount++;
+        }
+      });
+      return unreadCount;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,32 +75,55 @@ class Home extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: Colors.white, // White outline
+                        width: 1.0,
+                      ),
                     ),
-                    child: Image.asset("assets/images/profile.png"),
+                    child: ClipOval(
+                      child: Image.network(
+                        widget.user.photoURL ??
+                            'https://via.placeholder.com/150',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                   // Greeting Text
-                  const Text(
-                    "Selamat Siang, \nMarcus Aurelius",
-                    style: TextStyle(
+                  Text(
+                    "Selamat Siang, \n${widget.user.displayName}",
+                    style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 16,
                       color: Colors.white,
                     ),
                   ),
-                  // Notification Icon
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  NotificationPage()));
+                  // Notification Icon with Badge
+                  StreamBuilder<int>(
+                    stream: _unreadNotificationsCount(),
+                    builder: (context, snapshot) {
+                      int unreadCount = snapshot.data ?? 0;
+                      return badges.Badge(
+                        badgeContent: Text(
+                          unreadCount.toString(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        showBadge: unreadCount > 0,
+                        child: IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        NotificationPage()));
+                          },
+                          icon: const Icon(
+                            Icons.notifications_none,
+                            color: Colors.white,
+                            size: 35,
+                          ),
+                        ),
+                      );
                     },
-                    icon: const Icon(
-                      Icons.notifications_none,
-                      color: Colors.white,
-                      size: 35,
-                    ),
                   ),
                 ],
               ),
@@ -79,8 +142,24 @@ class Home extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      const CardHome(),
-
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: _userPointsStream(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          }
+                          if (snapshot.hasError) {
+                            return Text("Error: ${snapshot.error}");
+                          }
+                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                            return Text("No data available");
+                          }
+                          final userDoc = snapshot.data!;
+                          final points = userDoc['points'] ?? 0;
+                          return CardHome(points: points);
+                        },
+                      ),
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
@@ -104,12 +183,14 @@ class Home extends StatelessWidget {
                             FiturUnggulan(
                               imagePath: "assets/images/icon_motorbike.png",
                               label: "E-Waste Pick-up",
-                              page: EWastePickupScreen(),
+                              page: EWastePickupScreen(
+                                streetName: 'Jl. Abdul Hakim No. 12',
+                              ),
                             ),
                             FiturUnggulan(
                               imagePath: "assets/images/icon_withdraw.png",
                               label: "E-Point Withdraw",
-                              page: CommunityPage(),
+                              page: WithdrawPage(),
                             ),
                             FiturUnggulan(
                               imagePath: "assets/images/icon_community.png",

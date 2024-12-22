@@ -6,11 +6,16 @@ import 'package:e_cycle/screens/e_waste_pickup/widgets/select_waste_type_modal.d
 import 'package:e_cycle/screens/e_waste_pickup/widgets/item_card.dart';
 import 'package:e_cycle/screens/e_waste_pickup/widgets/section_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../widgets/map_screen.dart';
+import '../transactionHistory/transaction_history.dart';
 
 class EWastePickupScreen extends StatefulWidget {
-  const EWastePickupScreen({super.key});
+  final String streetName;
+
+  const EWastePickupScreen({super.key, required this.streetName});
 
   @override
   State<EWastePickupScreen> createState() => _EWastePickupScreenState();
@@ -174,7 +179,18 @@ class _EWastePickupScreenState extends State<EWastePickupScreen> {
                           }),
                       const SizedBox(height: 62),
                       ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _updatePickupData(_selectedItems, _selectedTimes);
+                            // Navigate to Histori Transaksi
+
+                            Navigator.pop(context);
+
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        TransactionHistory()));
+                          },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               shape: RoundedRectangleBorder(
@@ -194,4 +210,22 @@ class _EWastePickupScreenState extends State<EWastePickupScreen> {
   int calcTotalPrice() => _selectedItems.values
       .fold(0, (tot, quantity) => tot + quantity * pricePerItem);
   int calcAdminFee() => (calcTotalPrice() * 0.1).toInt();
+
+  Future<void> _updatePickupData(
+      Map<String, int> selectedItems, String selectedTimes) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final pickupDoc =
+          FirebaseFirestore.instance.collection('e_pickup').doc(user.uid);
+      await pickupDoc.set({
+        'selectedItems': selectedItems,
+        'selectedTimes': selectedTimes,
+        'totalPrice': calcTotalPrice(),
+        'adminFee': calcAdminFee(),
+        'points': calcTotalPrice() - calcAdminFee(),
+        'streetName': widget.streetName,
+        'status': 'ongoing'
+      }, SetOptions(merge: true));
+    }
+  }
 }

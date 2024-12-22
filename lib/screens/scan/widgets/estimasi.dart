@@ -3,10 +3,17 @@ import 'package:e_cycle/screens/scan/scan.dart';
 import 'package:flutter/material.dart';
 
 class Estimasi extends StatelessWidget {
-  const Estimasi({super.key});
+  final String result;
+  final int points;
+
+  const Estimasi({super.key, required this.result, required this.points});
 
   @override
   Widget build(BuildContext context) {
+    final pointText = points.toString();
+    final pointToPrice = (points * 100).toString().replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+
     return Scaffold(
       backgroundColor: primaryColor,
       body: SafeArea(
@@ -21,8 +28,7 @@ class Estimasi extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const Scan()),
+                        MaterialPageRoute(builder: (context) => const Scan()),
                       );
                     },
                     icon: const Icon(Icons.arrow_back_ios_new),
@@ -61,16 +67,16 @@ class Estimasi extends StatelessWidget {
                         "Estimasi Harga",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.green[700],
                         ),
                       ),
                       const SizedBox(height: 5),
-                      const Text(
-                        "Handphone bekas",
-                        style: TextStyle(
-                          fontSize: 16,
+                      Text(
+                        result,
+                        style: const TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -81,14 +87,15 @@ class Estimasi extends StatelessWidget {
                             width: 110,
                           ),
                           const SizedBox(width: 15),
-                          const Column(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
-                                "6,500",
-                                style: TextStyle(fontSize: 64),
+                                pointText,
+                                style: const TextStyle(
+                                    fontSize: 40, color: primaryColor),
                               ),
-                              Text(
+                              const Text(
                                 "GreenPoints",
                                 style: TextStyle(fontSize: 12),
                               )
@@ -102,10 +109,11 @@ class Estimasi extends StatelessWidget {
                         size: 32,
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        "Rp. 650.000,-",
-                        style: TextStyle(
+                      Text(
+                        "Rp$pointToPrice",
+                        style: const TextStyle(
                           fontSize: 32,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -114,10 +122,12 @@ class Estimasi extends StatelessWidget {
                         thickness: 1,
                       ),
                       const SizedBox(height: 10),
-                      _buildTipStep("01", "Sortir dan periksa HP bekas",
-                          "Sortir, dan periksa HP anda dari kondisi fisik dan fungsionalitasnya. Handphone anda bisa diremanufaktur!"),
+                      _buildTipStep(
+                          "01",
+                          "Sortir dan periksa perangkat elektronik",
+                          "Sortir dan periksa perangkat elektronik Anda dari kondisi fisik dan fungsionalitasnya. Perangkat Anda bisa diremanufaktur!"),
                       _buildTipStep("02", "Bongkar dan Bersihkan",
-                          "Coba bongkar handphone anda berdasarkan komponennya. Apabila tidak bisa, tim E-Cycle akan membantu!"),
+                          "Coba bongkar perangkat elektronik Anda berdasarkan komponennya. Apabila tidak bisa, tim E-Cycle akan membantu!"),
                       _buildTipStep("03", "Antar / Pick-up E-Waste kamu!",
                           "Antar atau pesan pick-up untuk sampah elektronikmu, dan dapatkan E-Point sebagai reward!"),
                     ],

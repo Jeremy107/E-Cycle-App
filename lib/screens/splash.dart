@@ -1,5 +1,5 @@
 import 'package:e_cycle/constants/colors.dart';
-import 'package:e_cycle/screens/login.dart';
+import 'package:e_cycle/screens/auth/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

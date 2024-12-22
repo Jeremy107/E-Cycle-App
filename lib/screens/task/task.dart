@@ -1,12 +1,27 @@
 import 'package:e_cycle/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ETaskPage extends StatelessWidget {
   const ETaskPage({super.key});
 
+  Stream<Map<String, dynamic>> _fetchMissions() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return FirebaseFirestore.instance
+          .collection('missions')
+          .doc(user.uid)
+          .snapshots()
+          .map((snapshot) => snapshot.data() ?? {});
+    }
+    return const Stream.empty();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(0, 148, 33, 1),
         centerTitle: true,
@@ -19,98 +34,97 @@ class ETaskPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // Tab Navigation
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _TaskTabButton(
-                  title: 'Tugas Harian',
-                  icon: Icons.chat_bubble_outline,
-                  selected: true,
-                ),
-                _TaskTabButton(
-                  title: 'Tugas Mingguan',
-                  icon: Icons.chat_bubble_outline,
-                  selected: false,
-                ),
-                _TaskTabButton(
-                  title: 'Semua Misi',
-                  icon: Icons.chat_bubble_outline,
-                  selected: false,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          // Task List
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: StreamBuilder<Map<String, dynamic>>(
+        stream: _fetchMissions(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading missions"));
+          }
+          final missions = snapshot.data ?? {};
+          final incompleteMissions = missions.entries
+              .where((entry) => entry.value['completed'] == false)
+              .toList();
+          final completedMissions = missions.entries
+              .where((entry) => entry.value['completed'] == true)
+              .toList();
+          return Column(
+            children: [
+              // Tab Navigation
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    const Text(
-                      'Belum Selesai - 2',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    _TaskTabButton(
+                      title: 'Tugas Harian',
+                      icon: Icons.chat_bubble_outline,
+                      selected: true,
                     ),
-                    const SizedBox(height: 10),
-                    TaskTile(
-                      icon: Icons.qr_code_scanner,
-                      title: "Scan sampah hari ini",
-                      description:
-                          "Kumpulkan sampah di sekitar Anda, lalu lakukan pemindaian untuk identifikasi.",
-                      points: 10,
+                    _TaskTabButton(
+                      title: 'Tugas Mingguan',
+                      icon: Icons.chat_bubble_outline,
+                      selected: false,
                     ),
-                    TaskTile(
-                      icon: Icons.qr_code_scanner,
-                      title: "Scan sampah hari ini",
-                      description:
-                          "Kumpulkan sampah di sekitar Anda, lalu lakukan pemindaian untuk identifikasi.",
-                      points: 10,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Sudah Selesai - 3',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    TaskTile(
-                      icon: Icons.qr_code_scanner,
-                      title: "Scan sampah hari ini",
-                      description:
-                          "Kumpulkan sampah di sekitar Anda, lalu lakukan pemindaian untuk identifikasi.",
-                      points: 10,
-                      isDone: true,
-                    ),
-                    TaskTile(
-                      icon: Icons.qr_code_scanner,
-                      title: "Scan sampah hari ini",
-                      description:
-                          "Kumpulkan sampah di sekitar Anda, lalu lakukan pemindaian untuk identifikasi.",
-                      points: 10,
-                      isDone: true,
-                    ),
-                    TaskTile(
-                      icon: Icons.qr_code_scanner,
-                      title: "Scan sampah hari ini",
-                      description:
-                          "Kumpulkan sampah di sekitar Anda, lalu lakukan pemindaian untuk identifikasi.",
-                      points: 10,
-                      isDone: true,
+                    _TaskTabButton(
+                      title: 'Semua Misi',
+                      icon: Icons.chat_bubble_outline,
+                      selected: false,
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
+              const SizedBox(height: 10),
+              // Task List
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Belum Selesai - ${incompleteMissions.length}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        ...incompleteMissions.map((entry) {
+                          final mission = entry.value;
+                          return TaskTile(
+                            icon: Icons.qr_code_scanner,
+                            title: mission['title'],
+                            description: mission['desc'],
+                            points: mission['points'],
+                          );
+                        }).toList(),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Sudah Selesai - ${completedMissions.length}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        ...completedMissions.map((entry) {
+                          final mission = entry.value;
+                          return TaskTile(
+                            icon: Icons.qr_code_scanner,
+                            title: mission['title'],
+                            description: mission['desc'],
+                            points: mission['points'],
+                            isDone: true,
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -13,8 +13,8 @@ class NationalPage extends StatelessWidget {
             child: Column(children: [
       Container(
         height: 72,
-        child: Header,
         decoration: const BoxDecoration(color: primaryColor),
+        child: Header(),
       ),
       const SizedBox(
         height: 10,
