@@ -43,7 +43,6 @@ class MapScreenState extends State<MapScreen> {
           title: const Text('Masukkan Nama Penanda'),
           content: TextField(
             controller: textFieldController,
-            decoration: const InputDecoration(hintText: "PaskalGay"),
           ),
           actions: <Widget>[
             TextButton(

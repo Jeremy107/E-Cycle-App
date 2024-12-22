@@ -13,7 +13,7 @@ class RegionalPage extends StatelessWidget {
             child: Column(children: [
       Container(
         height: 72,
-        child: Header,
+        child: Header(),
         decoration: const BoxDecoration(color: primaryColor),
       ),
       const SizedBox(

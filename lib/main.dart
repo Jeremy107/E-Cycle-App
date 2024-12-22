@@ -1,12 +1,24 @@
-import 'package:e_cycle/constants/colors.dart';
-import 'package:e_cycle/screens/home.dart';
-// import 'package:e_cycle/screens/profile/Peringkat/leaderboard.dart';
-import 'package:e_cycle/screens/profile/Peringkat/national.dart';
-import 'package:e_cycle/screens/profile/profile.dart';
 import 'package:e_cycle/screens/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
   runApp(const MyApp());
 }
 

@@ -2,12 +2,26 @@ import 'package:e_cycle/constants/colors.dart';
 import 'package:e_cycle/screens/transactionHistory/widgets/double_text_spacebeetween.dart';
 import 'package:e_cycle/screens/transactionHistory/widgets/triple_content_row.dart';
 import 'package:flutter/material.dart';
-
 import '../../../constants/app_styles.dart';
 import '../../widgets/dashed_line.dart';
 
 class OngoingTransactionCard extends StatefulWidget {
-  const OngoingTransactionCard({super.key});
+  final Map<String, int> selectedItems;
+  final String selectedTimes;
+  final String streetName;
+  final int totalPrice;
+  final int adminFee;
+  final int points;
+
+  const OngoingTransactionCard({
+    super.key,
+    required this.selectedItems,
+    required this.selectedTimes,
+    required this.streetName,
+    required this.totalPrice,
+    required this.adminFee,
+    required this.points,
+  });
 
   @override
   State<OngoingTransactionCard> createState() => _OngoingTransactionCardState();
@@ -35,18 +49,13 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
           borderRadius: BorderRadius.circular(15),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                // spreadRadius: 2,
-                offset: Offset(0, 2))
+                color: Colors.black12, blurRadius: 10, offset: Offset(0, 2))
           ],
         ),
         height: _isExpanded ? 530 : 195,
-        // clipBehavior: Clip.hardEdge,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
@@ -77,7 +86,6 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
                   ),
                 ],
               ),
-              // const SizedBox(height: 10),
               if (_isExpanded) ...[
                 const Divider(),
                 Column(
@@ -87,7 +95,7 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
                         Image.asset("assets/images/time_icon.png"),
                         const SizedBox(width: 8),
                         Text(
-                          "17:30 - 19:30",
+                          widget.selectedTimes,
                           style:
                               AppStyles.descriptionStyle.copyWith(fontSize: 14),
                         )
@@ -98,7 +106,7 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
                         Image.asset("assets/images/location_icon.png"),
                         const SizedBox(width: 8),
                         Text(
-                          "Jl. Abdul Hakim, Padang Bulan",
+                          widget.streetName,
                           style: AppStyles.titleStyle.copyWith(
                               fontSize: 14, fontWeight: FontWeight.w700),
                         )
@@ -117,39 +125,34 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
                           .copyWith(fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
-                    const DoubleTextSpacebeetween(
-                        text1: "Smartphone Samsung J15", text2: "1 item"),
-                    const SizedBox(height: 3),
-                    const DoubleTextSpacebeetween(
-                        text1: "LG A34 TV ELD", text2: "1 item"),
-                    const SizedBox(height: 3),
-                    const DoubleTextSpacebeetween(
-                        text1: "AC Samsung", text2: "1 item"),
+                    ...widget.selectedItems.entries.map((entry) =>
+                        DoubleTextSpacebeetween(
+                            text1: entry.key, text2: "${entry.value} item")),
                   ],
                 ),
                 const Divider(),
-                const Column(
+                Column(
                   children: [
                     TripleContentRow(
                       imgName: 'coin_icon.png',
                       text1: 'Total harga',
-                      text2: '1.400.000',
+                      text2: '${widget.totalPrice}',
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     TripleContentRow(
                       imgName: 'coin_icon.png',
                       text1: 'Biaya admin (10%)',
-                      text2: '200.000',
+                      text2: '${widget.adminFee}',
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 const DashedLine(),
                 const SizedBox(height: 8),
-                const TripleContentRow(
+                TripleContentRow(
                     imgName: 'coin_icon.png',
                     text1: 'Estimasi pendapatan',
-                    text2: '1.200.000'),
+                    text2: '${widget.points}'),
                 Padding(
                   padding: const EdgeInsets.only(top: 20, bottom: 15),
                   child: Center(
