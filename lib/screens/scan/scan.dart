@@ -199,7 +199,8 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
   /* -------------------------- Image classification Start -------------------------- */
   Future<void> _classifyImage(File imageFile) async {
     try {
-      const apiKey = 'AIzaSyD8blGqOYS86v0zV50BW4csSp2tI4n_sZg';
+      // const apiKey = 'AIzaSyD8blGqOYS86v0zV50BW4csSp2tI4n_sZg';
+      const apiKey = 'AIzaSyBgHH5k23-P6lYie7zmK5dDRgS9pd_x28A';
 
       if (apiKey == null) {
         stderr.writeln('No API key provided');
@@ -214,12 +215,12 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
       final content = [
         Content.multi([
           TextPart(prompt),
-          DataPart('image/jpg', imageBytes),
+          DataPart('image/png', imageBytes),
         ])
       ];
 
       final model = GenerativeModel(
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.5-flash',
         apiKey: apiKey,
         generationConfig: GenerationConfig(
           temperature: 1,

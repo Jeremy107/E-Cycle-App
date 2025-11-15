@@ -1,40 +1,47 @@
 {
-    "project_info": {
-        "project_number": "941190752602",
-        "project_id": "e-cycle-ac4f3",
-        "storage_bucket": "e-cycle-ac4f3.firebasestorage.app"
-    },
-    "client": [{
-        "client_info": {
-            "mobilesdk_app_id": "1:941190752602:android:cb0dbfd91260537f266b63",
-            "android_client_info": {
-                "package_name": "com.example.e_cycle"
-            }
-        },
-        "oauth_client": [{
-                "client_id": "941190752602-pbk8dsihai1bv13g7eau5tvlb61sfmo3.apps.googleusercontent.com",
-                "client_type": 1,
-                "android_info": {
-                    "package_name": "com.example.e_cycle",
-                    "certificate_hash": "b0b292032868ad94f09f27ce8e30fe7a3ed1bbba"
-                }
-            },
-            {
-                "client_id": "941190752602-bmnug4rvptlneabmu96hjsaj4b3fhjsa.apps.googleusercontent.com",
-                "client_type": 3
-            }
-        ],
-        "api_key": [{
-            "current_key": "AIzaSyD-8B7eEGWnF_MVp9Dlg58PFWuR8TbXSSA"
-        }],
-        "services": {
-            "appinvite_service": {
-                "other_platform_oauth_client": [{
-                    "client_id": "941190752602-bmnug4rvptlneabmu96hjsaj4b3fhjsa.apps.googleusercontent.com",
-                    "client_type": 3
-                }]
-            }
+  "project_info": {
+    "project_number": "941190752602",
+    "project_id": "e-cycle-ac4f3",
+    "storage_bucket": "e-cycle-ac4f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941190752602:android:cb0dbfd91260537f266b63",
+        "android_client_info": {
+          "package_name": "com.example.e_cycle"
         }
-    }],
-    "configuration_version": "1"
+      },
+      "oauth_client": [
+        {
+          "client_id": "941190752602-pbk8dsihai1bv13g7eau5tvlb61sfmo3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.e_cycle",
+            "certificate_hash": "b0b292032868ad94f09f27ce8e30fe7a3ed1bbba"
+          }
+        },
+        {
+          "client_id": "941190752602-bmnug4rvptlneabmu96hjsaj4b3fhjsa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-8B7eEGWnF_MVp9Dlg58PFWuR8TbXSSA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "941190752602-bmnug4rvptlneabmu96hjsaj4b3fhjsa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
 }
