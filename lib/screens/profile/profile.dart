@@ -1,14 +1,13 @@
 import 'package:e_cycle/constants/colors.dart';
+import 'package:e_cycle/screens/auth/auth_service.dart';
 import 'package:e_cycle/screens/auth/login.dart';
 import 'package:e_cycle/screens/profile/Peringkat/national.dart';
 import 'package:e_cycle/screens/profile/widgets/header.dart';
 import 'package:e_cycle/screens/profile/widgets/list_menu.dart';
 import 'package:e_cycle/screens/profile/widgets/list_menua.dart';
 import 'package:e_cycle/screens/profile/widgets/logout.dart';
-import 'package:e_cycle/screens/transactionHistory/transaction_history.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:e_cycle/screens/splash.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_cycle/screens/withdraw/withdraw.dart';
 import 'package:e_cycle/screens/notification/notification_page.dart';
@@ -241,7 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 10),
         GestureDetector(
           onTap: () async {
-            await FirebaseAuth.instance.signOut();
+            await AuthService.signOut();
             Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (BuildContext context) {
