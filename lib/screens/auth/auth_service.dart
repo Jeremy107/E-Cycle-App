@@ -228,23 +228,23 @@ class AuthService {
       await missionDoc.set({
         'harian1': {
           'completed': false,
-          'points': 15,
+          'points': 5,
           'title': 'Scan Elektronik Pertama',
           'desc': 'Kumpulkan sampah elektronik dan lakukan pemindaian pertama.',
         },
         'harian2': {
           'completed': false,
-          'points': 20,
+          'points': 10,
           'title': 'Kumpulkan 3 Item',
           'desc': 'Scan 3 sampah elektronik berbeda dalam sehari.',
         },
         'harian3': {
           'completed': false,
-          'points': 25,
+          'points': 20,
           'title': 'Eco Warrior',
           'desc': 'Ajak teman untuk bergabung menggunakan E-Cycle.',
         },
-      });
+      }, SetOptions(merge: true)); // ✅ merge agar aman jika dipanggil ulang
     } catch (e) {
       log("Error creating user missions: $e");
     }

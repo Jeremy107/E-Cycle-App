@@ -28,36 +28,72 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       backgroundColor: primaryColor,
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 5, top: 30, bottom: 16),
+          Container(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 50, bottom: 24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  primaryColor,
+                  primaryColor.withOpacity(0.8),
+                ],
+              ),
+            ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.history),
-                    color: Colors.white),
-                Expanded(
-                  child: Text(
-                    "Histori Transaksi",
-                    textAlign: TextAlign.center,
-                    style:
-                        AppStyles.headerPageStyle.copyWith(color: Colors.white),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.history_rounded,
+                    color: Colors.white,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 48)
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Histori Transaksi",
+                        style: AppStyles.headerPageStyle.copyWith(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Pantau semua aktivitas transaksimu",
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
               child: Container(
             padding:
-                const EdgeInsets.only(left: 30, right: 30, bottom: 30, top: 20),
+                const EdgeInsets.only(left: 24, right: 24, bottom: 24, top: 28),
             decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30))),
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(32),
+                topRight: Radius.circular(32),
+              ),
+            ),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

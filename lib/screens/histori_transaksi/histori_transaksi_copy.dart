@@ -22,10 +22,11 @@ class HistoriTransaksi extends StatelessWidget {
         title: const Text(
           "Histori Transaksi",
           style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
-              fontFamily: "Poppins"),
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            fontFamily: "Poppins",
+          ),
         ),
       ),
       body: Container(

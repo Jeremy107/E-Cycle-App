@@ -34,7 +34,7 @@ class _WithdrawPageState extends State<WithdrawPage> {
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(
-                  left: 30, right: 30, bottom: 30, top: 20),
+                  left: 24, right: 24, bottom: 30, top: 24),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -44,13 +44,26 @@ class _WithdrawPageState extends State<WithdrawPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    ToggleTabs(
-                      tab1: "Withdraw",
-                      tab2: "E-Voucher",
-                      selectedTab: _selectedTab,
-                      onTabTapped: _onTabTapped,
+                    // Enhanced Toggle Tabs
+                    Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 0,
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ToggleTabs(
+                        tab1: "Withdraw",
+                        tab2: "E-Voucher",
+                        selectedTab: _selectedTab,
+                        onTabTapped: _onTabTapped,
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
                         child: _selectedTab == 0

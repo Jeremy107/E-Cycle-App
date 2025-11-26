@@ -1,18 +1,52 @@
 import 'package:e_cycle/constants/colors.dart';
-import 'package:e_cycle/screens/scan/scan.dart';
 import 'package:flutter/material.dart';
 
-class Estimasi extends StatelessWidget {
-  final String result;
-  final int points;
+class Estimasi extends StatefulWidget {
+  final String result; // Nama barang elektronik
+  final int points; // Points yang sudah dihitung dari harga
 
   const Estimasi({super.key, required this.result, required this.points});
 
   @override
-  Widget build(BuildContext context) {
-    final pointText = points.toString();
-    final pointToPrice = (points * 100).toString().replaceAllMapped(
+  State<Estimasi> createState() => _EstimasiState();
+}
+
+class _EstimasiState extends State<Estimasi> with TickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+    );
+
+    _scaleController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  String _formatRupiah(int hargaRp) {
+    return hargaRp.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Harga dalam Rp = points * 1000
+    final hargaRp = widget.points * 1000;
+    final hargaFormatted = _formatRupiah(hargaRp);
+    final pointText = widget.points.toString();
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -24,24 +58,28 @@ class Estimasi extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Scan()),
-                      );
-                    },
-                    icon: const Icon(Icons.arrow_back_ios_new),
-                    color: Colors.white,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                      color: Colors.white,
+                      iconSize: 20,
+                    ),
                   ),
                   const Expanded(
                     child: Text(
-                      "Tips Pengolahan",
+                      "Estimasi Harga",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontFamily: "Poppins",
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white),
                     ),
                   ),
@@ -51,7 +89,7 @@ class Estimasi extends StatelessWidget {
             ),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(30),
+                padding: const EdgeInsets.all(24),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -64,72 +102,261 @@ class Estimasi extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        "Estimasi Harga",
+                        "Nama Barang",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        result,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Image.asset(
-                            "assets/images/coin.png",
-                            width: 110,
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.2),
+                            width: 1.5,
                           ),
-                          const SizedBox(width: 15),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                pointText,
-                                style: const TextStyle(
-                                    fontSize: 40, color: primaryColor),
-                              ),
-                              const Text(
-                                "GreenPoints",
-                                style: TextStyle(fontSize: 12),
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      const Icon(
-                        Icons.keyboard_double_arrow_down_rounded,
-                        size: 32,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "Rp$pointToPrice",
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
+                        ),
+                        child: Text(
+                          widget.result,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Divider(
-                        color: Colors.grey[300],
-                        thickness: 1,
+                      const SizedBox(height: 28),
+                      Text(
+                        "Reward",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                      const SizedBox(height: 10),
-                      _buildTipStep(
-                          "01",
-                          "Sortir dan periksa perangkat elektronik",
-                          "Sortir dan periksa perangkat elektronik Anda dari kondisi fisik dan fungsionalitasnya. Perangkat Anda bisa diremanufaktur!"),
-                      _buildTipStep("02", "Bongkar dan Bersihkan",
-                          "Coba bongkar perangkat elektronik Anda berdasarkan komponennya. Apabila tidak bisa, tim E-Cycle akan membantu!"),
-                      _buildTipStep("03", "Antar / Pick-up E-Waste kamu!",
-                          "Antar atau pesan pick-up untuk sampah elektronikmu, dan dapatkan E-Point sebagai reward!"),
+                      const SizedBox(height: 12),
+                      ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                primaryColor.withOpacity(0.1),
+                                primaryColor.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: primaryColor.withOpacity(0.3),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: primaryColor.withOpacity(0.15),
+                                blurRadius: 12,
+                                spreadRadius: 0,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    "assets/images/coin.png",
+                                    width: 80,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        pointText,
+                                        style: const TextStyle(
+                                          fontSize: 42,
+                                          fontWeight: FontWeight.w800,
+                                          color: primaryColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        "GreenPoints",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryColor.withOpacity(0.7),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline_rounded,
+                                      size: 14,
+                                      color: primaryColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "Pendapatan Estimasi",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.amber.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.arrow_downward_rounded,
+                              size: 18,
+                              color: Colors.amber.shade700,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "Konversi Harga",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.amber.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.green.withOpacity(0.3),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.1),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Rp$hargaFormatted",
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Harga Estimasi Elektronik",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.checklist_rounded,
+                                  size: 20,
+                                  color: Colors.orange.shade700,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Langkah Pengolahan",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTipStep("01", "Sortir Perangkat",
+                                "Periksa kondisi fisik dan fungsionalitas elektronik Anda"),
+                            const SizedBox(height: 12),
+                            _buildTipStep("02", "Bongkar & Bersihkan",
+                                "Pisahkan komponen atau minta bantuan tim E-Cycle"),
+                            const SizedBox(height: 12),
+                            _buildTipStep("03", "Antar ke Drop Point",
+                                "Kirim atau minta pickup dan terima E-Point reward!"),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -143,37 +370,68 @@ class Estimasi extends StatelessWidget {
 }
 
 Widget _buildTipStep(String step, String title, String description) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: Colors.yellow[700],
-          child: Text(
-            step,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.orange.shade600,
+              Colors.orange.shade700,
             ],
           ),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orange.withOpacity(0.3),
+              blurRadius: 6,
+              spreadRadius: 0,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-      ],
-    ),
+        child: Center(
+          child: Text(
+            step,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
   );
 }

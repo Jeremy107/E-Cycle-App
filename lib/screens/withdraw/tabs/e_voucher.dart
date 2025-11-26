@@ -1,4 +1,5 @@
 import 'package:e_cycle/constants/app_styles.dart';
+import 'package:e_cycle/constants/colors.dart';
 import 'package:e_cycle/models/e_voucher_data.dart';
 import 'package:e_cycle/screens/withdraw/voucher_detail.dart';
 import 'package:e_cycle/screens/withdraw/widgets/e_voucher_card.dart';
@@ -10,38 +11,88 @@ class EVoucherTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "E-Voucher Tersedia",
-          style: AppStyles.titleStyle,
-        ),
-        const SizedBox(height: 3),
-        Text(
-          "15 E-Voucher",
-          style: AppStyles.descriptionStyle.copyWith(
-            color: Colors.grey
-          ),
-        ),
-        const SizedBox(height: 15),
-        Column(
-          children: eVoucherData.map((eVoucherDataMap) => Column(
+        // Header Section with Icon
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
             children: [
-              GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => VoucherDetailScreen(
-                    voucherData: eVoucherDataMap,
-                  ))
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: EVoucherCard(
-                  eVoucher: eVoucherDataMap
+                child: Icon(
+                  Icons.card_giftcard_rounded,
+                  color: primaryColor,
+                  size: 20,
                 ),
               ),
-              const SizedBox(height: 15)
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "E-Voucher Tersedia",
+                      style: AppStyles.titleStyle.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "${eVoucherData.length} E-Voucher",
+                      style: AppStyles.descriptionStyle.copyWith(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-          )
-          ).toList(),
-        )
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Vouchers Grid
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: eVoucherData.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final voucherData = eVoucherData[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        VoucherDetailScreen(voucherData: voucherData),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      var begin = const Offset(1.0, 0.0);
+                      var end = Offset.zero;
+                      var curve = Curves.ease;
+                      var tween = Tween(begin: begin, end: end).chain(
+                        CurveTween(curve: curve),
+                      );
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+              child: EVoucherCard(eVoucher: voucherData),
+            );
+          },
+        ),
       ],
     );
   }

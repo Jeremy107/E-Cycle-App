@@ -17,16 +17,29 @@ class NotificationPage extends StatelessWidget {
           return [];
         }
         final data = snapshot.data() as Map<String, dynamic>;
-        return data.entries.map((entry) {
+
+        final list = data.entries.map((entry) {
           final notification = entry.value as Map<String, dynamic>;
           return {
             'id': entry.key,
             'title': notification['title'],
             'body': notification['body'],
             'isRead': notification['isRead'],
-            'timestamp': notification['timestamp'],
+            'timestamp': notification['timestamp'], // Firestore Timestamp
           };
         }).toList();
+
+        // ✅ Sort: terbaru dulu (timestamp besar ke kecil)
+        list.sort((a, b) {
+          final ta = a['timestamp'] as Timestamp?;
+          final tb = b['timestamp'] as Timestamp?;
+          if (ta == null && tb == null) return 0;
+          if (ta == null) return 1; // null dianggap paling lama
+          if (tb == null) return -1;
+          return tb.compareTo(ta); // descending
+        });
+
+        return list;
       });
     }
     return const Stream.empty();

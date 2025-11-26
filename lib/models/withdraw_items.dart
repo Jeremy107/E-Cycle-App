@@ -5,6 +5,6 @@ const List<Map<String, String>> withdrawItems = [
   {'image': 'assets/images/withdraw_btn.png', 'title': 'BTN'},
   {'image': 'assets/images/withdraw_bsi.png', 'title': 'BSI'},
   {'image': 'assets/images/withdraw_bca.png', 'title': 'BCA'},
-  {'image': 'assets/images/withdraw_seabank.png', 'title': 'SeaBank'},
-  {'image': 'assets/images/withdraw_lainnya.png', 'title': 'Lainnya'},
+  // {'image': 'assets/images/withdraw_seabank.png', 'title': 'SeaBank'},
+  // {'image': 'assets/images/withdraw_lainnya.png', 'title': 'Lainnya'},
 ];

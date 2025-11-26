@@ -1,9 +1,6 @@
 import 'package:e_cycle/constants/colors.dart';
-import 'package:e_cycle/screens/transactionHistory/widgets/double_text_spacebeetween.dart';
-import 'package:e_cycle/screens/transactionHistory/widgets/triple_content_row.dart';
 import 'package:flutter/material.dart';
 import '../../../constants/app_styles.dart';
-import '../../widgets/dashed_line.dart';
 
 class OngoingTransactionCard extends StatefulWidget {
   final Map<String, int> selectedItems;
@@ -43,144 +40,378 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.all(11),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: greyColor,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
             BoxShadow(
-                color: Colors.black12, blurRadius: 10, offset: Offset(0, 2))
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 0,
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
           ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.1),
+            width: 1,
+          ),
         ),
-        height: _isExpanded ? 530 : 195,
+        height: _isExpanded ? 550 : 220,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Image.asset("assets/images/delivery_icon.png"),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.local_shipping_rounded,
+                      color: primaryColor,
+                      size: 24,
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Text(
-                      "Sip!, Tunggu ya, kami sedang mencarikan E-Picker untukmu",
-                      style: AppStyles.titleStyle.copyWith(fontSize: 14),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Sisa waktu pencarian E-Picker: 180 detik",
-                    style: AppStyles.descriptionStyle
-                        .copyWith(color: primaryColor),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "Apabila waktu pencarian habis, penjemputan akan dibatalkan secara otomatis",
-                    style: AppStyles.descriptionStyle
-                        .copyWith(fontWeight: FontWeight.w400),
-                  ),
-                ],
-              ),
-              if (_isExpanded) ...[
-                const Divider(),
-                Column(
-                  children: [
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset("assets/images/time_icon.png"),
-                        const SizedBox(width: 8),
                         Text(
-                          widget.selectedTimes,
-                          style:
-                              AppStyles.descriptionStyle.copyWith(fontSize: 14),
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Image.asset("assets/images/location_icon.png"),
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.streetName,
+                          "Mencari E-Picker",
                           style: AppStyles.titleStyle.copyWith(
-                              fontSize: 14, fontWeight: FontWeight.w700),
-                        )
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Sedang mencarikan E-Picker untukmu",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                       ],
-                    )
-                  ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
-                const SizedBox(height: 5),
-                const Divider(),
-                Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          color: Colors.orange.shade700,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Sisa waktu pencarian: 180 detik",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Text(
-                      "Detail Sampah Elektronik",
-                      style: AppStyles.titleStyle
-                          .copyWith(fontSize: 14, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    ...widget.selectedItems.entries.map((entry) =>
-                        DoubleTextSpacebeetween(
-                            text1: entry.key, text2: "${entry.value} item")),
-                  ],
-                ),
-                const Divider(),
-                Column(
-                  children: [
-                    TripleContentRow(
-                      imgName: 'coin_icon.png',
-                      text1: 'Total harga',
-                      text2: '${widget.totalPrice}',
-                    ),
-                    const SizedBox(height: 8),
-                    TripleContentRow(
-                      imgName: 'coin_icon.png',
-                      text1: 'Biaya admin (10%)',
-                      text2: '${widget.adminFee}',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const DashedLine(),
-                const SizedBox(height: 8),
-                TripleContentRow(
-                    imgName: 'coin_icon.png',
-                    text1: 'Estimasi pendapatan',
-                    text2: '${widget.points}'),
-                Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 15),
-                  child: Center(
-                    child: OutlinedButton(
-                      onPressed: _onTapWidget,
-                      style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.red),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12))),
-                      child: Text(
-                        "BATAL",
-                        style: AppStyles.descriptionStyle
-                            .copyWith(color: Colors.red),
+                      "Apabila waktu pencarian habis, penjemputan akan dibatalkan secara otomatis",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
+                  ],
+                ),
+              ),
+              if (_isExpanded) ...[
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                )
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Detail Penjemputan",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            color: primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.selectedTimes,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            color: primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.streetName,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.recycling_rounded,
+                            color: primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Detail Sampah Elektronik",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...widget.selectedItems.entries.map(
+                        (entry) => Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  entry.key,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "${entry.value} item",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet_rounded,
+                            color: primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Ringkasan Pembayaran",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPaymentRow(
+                        'Total harga',
+                        'Rp ${widget.totalPrice}',
+                        false,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildPaymentRow(
+                        'Biaya admin (10%)',
+                        'Rp ${widget.adminFee}',
+                        false,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 1,
+                        color: Colors.grey.shade300,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPaymentRow(
+                        'Estimasi pendapatan',
+                        '${widget.points} poin',
+                        true,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _onTapWidget,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade50,
+                      foregroundColor: Colors.red.shade700,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.red.shade200),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.cancel_rounded,
+                          size: 18,
+                          color: Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "BATALKAN PICKUP",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
-              SizedBox(
-                height: 20,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    height: 4,
-                    width: MediaQuery.of(context).size.width * .36,
-                    decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
-                        borderRadius: BorderRadius.circular(2)),
+              const SizedBox(height: 16),
+              Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isExpanded ? 'Tutup detail' : 'Lihat detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _isExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        size: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -188,6 +419,31 @@ class _OngoingTransactionCardState extends State<OngoingTransactionCard> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPaymentRow(String label, String value, bool isTotal) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: isTotal ? Colors.black87 : Colors.grey.shade600,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isTotal ? primaryColor : Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 }

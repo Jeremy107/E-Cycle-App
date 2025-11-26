@@ -4,7 +4,7 @@ import 'package:e_cycle/constants/colors.dart';
 import 'package:e_cycle/models/news.dart';
 import 'package:e_cycle/screens/article/article_detail.dart';
 import 'package:e_cycle/screens/community/community.dart';
-import 'package:e_cycle/screens/e_waste_pickup/e_waste_pickup.dart';
+import 'package:e_cycle/screens/drop_off/drop_off_screen.dart';
 import 'package:e_cycle/screens/notification/notification_page.dart';
 import 'package:e_cycle/screens/widgets/card_home.dart';
 import 'package:e_cycle/screens/widgets/fitur_unggulan.dart';
@@ -182,10 +182,8 @@ class _HomeState extends State<Home> {
                           children: [
                             FiturUnggulan(
                               imagePath: "assets/images/icon_motorbike.png",
-                              label: "E-Waste Pick-up",
-                              page: EWastePickupScreen(
-                                streetName: 'Jl. Abdul Hakim No. 12',
-                              ),
+                              label: "E-Waste Drop off",
+                              page: DropOffScreen(),
                             ),
                             FiturUnggulan(
                               imagePath: "assets/images/icon_withdraw.png",
@@ -195,11 +193,6 @@ class _HomeState extends State<Home> {
                             FiturUnggulan(
                               imagePath: "assets/images/icon_community.png",
                               label: "E-Waste Community",
-                              page: CommunityPage(),
-                            ),
-                            FiturUnggulan(
-                              imagePath: "assets/images/icon_cart.png",
-                              label: "E-Shop Keranjang",
                               page: CommunityPage(),
                             ),
                           ],

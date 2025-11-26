@@ -9,6 +9,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:developer';
 
 class Scan extends StatefulWidget {
   const Scan({Key? key}) : super(key: key);
@@ -22,7 +23,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
   List<CameraDescription>? cameras;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
+  bool _isScanning = false;
   bool _isCameraInitialized = false;
   bool showInfo = false;
   bool _canTap = true; // Prevent multiple taps
@@ -64,6 +65,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
     super.initState();
     _initializeCamera();
     _initializeNotifications();
+    _initializeStatusListener(); // Listen for status changes
 
     /* ------------------------------ animasi start ----------------------------- */
     _animationController = AnimationController(
@@ -100,6 +102,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
         _cameraController = CameraController(
           cameras![0],
           ResolutionPreset.high,
+          enableAudio: false,
         );
 
         await _cameraController?.initialize();
@@ -107,10 +110,10 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
           _isCameraInitialized = true;
         });
       } else {
-        print("Tidak ada kamera yang tersedia.");
+        log("Tidak ada kamera yang tersedia.");
       }
     } catch (e) {
-      print("Error saat menginisialisasi kamera: $e");
+      log("Error saat menginisialisasi kamera: $e");
     }
   }
 
@@ -196,31 +199,59 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _saveScanResult(String name, int earnedPoints) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final doc = FirebaseFirestore.instance
+          .collection('scans')
+          .doc(user.uid)
+          .collection('items')
+          .doc(); // unique
+      await doc.set({
+        'id': doc.id,
+        'name': name,
+        'points': earnedPoints,
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'pending',
+      });
+    } catch (e) {
+      log('Save scan error: $e');
+    }
+  }
+
+  String _detectMime(String path) {
+    final p = path.toLowerCase();
+    if (p.endsWith('.png')) return 'image/png';
+    return 'image/jpeg';
+  }
+
   /* -------------------------- Image classification Start -------------------------- */
   Future<void> _classifyImage(File imageFile) async {
     try {
+      setState(() => _isScanning = true);
       // const apiKey = 'AIzaSyD8blGqOYS86v0zV50BW4csSp2tI4n_sZg';
-      const apiKey = 'AIzaSyBgHH5k23-P6lYie7zmK5dDRgS9pd_x28A';
+      const apiKey = 'AIzaSyC7t47pQmiVn3OJ-DvBGvKLu3Gwsz_iRHk';
 
-      if (apiKey == null) {
-        stderr.writeln('No API key provided');
-        exit(1);
+      if (apiKey.isEmpty) {
+        throw Exception('API key missing');
       }
 
       const prompt =
-          'Classify this electronic image. Provide a “name” output for the brand name if present(“<Electronic Type> - <Full Brand>”), if not present(<Electronic Type>)';
+          'Analyze this electronic device image. Return ONLY a JSON with: "name" (format: "<Electronic Type> - <Brand>" if brand present, else just "<Electronic Type>") and "price" (estimated original price in IDR as integer, e.g., 5000000 for 5 million rupiah). No other text.';
 
       final imageBytes = await imageFile.readAsBytes();
+      final mime = _detectMime(imageFile.path);
 
       final content = [
         Content.multi([
           TextPart(prompt),
-          DataPart('image/png', imageBytes),
+          DataPart(mime, imageBytes),
         ])
       ];
 
       final model = GenerativeModel(
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash-lite',
         apiKey: apiKey,
         generationConfig: GenerationConfig(
           temperature: 1,
@@ -231,9 +262,8 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
           responseSchema: Schema(
             SchemaType.object,
             properties: {
-              "name": Schema(
-                SchemaType.string,
-              ),
+              "name": Schema(SchemaType.string),
+              "price": Schema(SchemaType.integer),
             },
           ),
         ),
@@ -241,49 +271,107 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
 
       final response = await model.generateContent(content);
 
-      setState(() {
-        result = response.text != null
-            ? jsonDecode(response.text!)['name'] ?? 'No result available'
-            : 'No result available';
-      });
-      // Fetch points from Firestore based on the normalized device type
-      await _fetchPoints(result.split(' - ')[0].toLowerCase());
+      if (response.text != null) {
+        final responseJson = jsonDecode(response.text!);
+        final extractedName = responseJson['name'] ?? 'No result available';
+        final extractedPrice = responseJson['price'] ?? 0;
+        final calculatedPoints = (extractedPrice / 1000).toInt();
 
-      // Add 10 points to the user's account
-      await _addPointsToUser(5);
+        setState(() {
+          result = extractedName;
+          points = calculatedPoints;
+        });
 
-      // Update the mission status
-      await _updateMissionStatus();
-
-      print("Hasil Points : $points");
-    } catch (e, stackTrace) {
-      print("Error classifying image: $e");
-      print("Stack trace: $stackTrace");
+        // Save the scan result with calculated points (status will be 'pending')
+        // Points will be added to user account only when status changes to 'success'
+        await _saveScanResult(result, calculatedPoints);
+      } else {
+        setState(() {
+          result = 'No result available';
+          points = 0;
+        });
+      }
+      // } catch (e, stackTrace) {
+      //   log("Error classifying image: $e");
+      //   log("Stack trace: $stackTrace");
+      // }
+    } catch (e, st) {
+      log("Classification error", error: e, stackTrace: st);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memproses gambar')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
     }
   }
   /* ------------------------ image classification end ------------------------ */
 
-  Future<void> _fetchPoints(String deviceType) async {
+  /* -------------------- Monitor Scan Status Changes -------------------- */
+  Future<void> _initializeStatusListener() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     try {
-      // Normalize the device type using the mapping
-      String normalizedDeviceType = deviceTypeMapping[deviceType] ?? deviceType;
+      FirebaseFirestore.instance
+          .collection('scans')
+          .doc(user.uid)
+          .collection('items')
+          .snapshots()
+          .listen((snapshot) {
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final status = (data['status'] ?? 'pending').toString().toLowerCase();
+          final points = (data['points'] ?? 0) as int;
+          final name = (data['name'] ?? '').toString();
 
-      final doc = await FirebaseFirestore.instance
-          .collection('device_points')
-          .doc(normalizedDeviceType)
-          .get();
-
-      if (doc.exists) {
-        setState(() {
-          points = doc['points'];
-        });
-      } else {
-        print("No points found for device type: $normalizedDeviceType");
-      }
+          // Check if status changed to 'success' and points haven't been added yet
+          if (status == 'success' && data['pointsAdded'] != true) {
+            // Add points to user account
+            _addPointsToUserFromSuccessfulScan(points, name, doc.id, user.uid);
+          }
+        }
+      });
     } catch (e) {
-      print("Error fetching points: $e");
+      log('Error initializing status listener: $e');
     }
   }
+
+  Future<void> _addPointsToUserFromSuccessfulScan(
+      int points, String name, String scanDocId, String uid) async {
+    try {
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(userDoc);
+        if (snapshot.exists) {
+          final currentPoints = snapshot['points'] ?? 0;
+          transaction.update(userDoc, {'points': currentPoints + points});
+          _showNotification(
+              "E-Points", "Scan Berhasil! Anda Mendapatkan +$points E-Points!");
+
+          await _addNotificationToFirebase(
+              "E-Points", "Scan Berhasil! Anda Mendapatkan +$points E-Points!");
+        }
+
+        // Mark that points have been added to this scan
+        final scanDoc = FirebaseFirestore.instance
+            .collection('scans')
+            .doc(uid)
+            .collection('items')
+            .doc(scanDocId);
+        transaction.update(scanDoc, {'pointsAdded': true});
+      });
+
+      // Update mission status after successful verification
+      await _updateMissionStatus();
+
+      log('Points added successfully for scan: $scanDocId');
+    } catch (e) {
+      log('Error adding points from successful scan: $e');
+    }
+  }
+  /* -------------------- End Status Listener -------------------- */
 
   // Add Notifications to Firebase
   Future<void> _addNotificationToFirebase(String title, String body) async {
@@ -329,7 +417,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      print("Error adding points to user: $e");
+      log("Error adding points to user: $e");
     }
   }
 
@@ -357,45 +445,57 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      print("Error updating mission status: $e");
+      log("Error updating mission status: $e");
     }
   }
 
   /* -------------------- tangkap dan klasifikasikan gambar ------------------- */
   Future<void> _captureAndClassifyImage() async {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
+    if (_cameraController == null ||
+        !_cameraController!.value.isInitialized ||
+        _cameraController!.value.isTakingPicture ||
+        _isScanning) {
+      log('Skip capture: kondisi belum siap');
+      return;
+    }
+    try {
+      final XFile shot = await _cameraController!.takePicture();
+      // Hentikan preview agar buffer tidak terus mengalir saat proses berat
+      await _cameraController?.pausePreview();
+      await _classifyImage(File(shot.path));
+      setState(() => showInfo = true);
+    } catch (e, st) {
+      log("Error capture/classify", error: e, stackTrace: st);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal mengambil gambar')),
+        );
+      }
+    }
+  }
+
+  void _resumePreviewIfNeeded() async {
+    if (_cameraController != null &&
+        _cameraController!.value.isInitialized &&
+        _cameraController!.value.isPreviewPaused) {
       try {
-        // Take a picture and get the file path
-        final XFile imageFile = await _cameraController!.takePicture();
-
-        // Compress and classify the image
-        await _classifyImage(File(imageFile.path));
-
-        setState(() {
-          showInfo = true;
-        });
+        await _cameraController!.resumePreview();
+        log('Preview dilanjutkan');
       } catch (e) {
-        print("Error capturing and classifying image: $e");
+        log('Gagal resume preview: $e');
       }
     }
   }
 
   /* ---------------------------- fungsi tap kamera --------------------------- */
   void _onCameraTap() async {
-    if (!_canTap) return; // Prevent multiple taps
-
+    if (!_canTap || _isScanning) return;
     setState(() {
-      _canTap = false; // Disable further taps
+      _canTap = false;
+      showInfo = false;
     });
-
     await _captureAndClassifyImage();
-
-    // Re-enable tapping after 5 seconds
-    Timer(Duration(seconds: 5), () {
-      setState(() {
-        _canTap = true;
-      });
-    });
+    if (mounted) setState(() => _canTap = true);
   }
 
   @override
@@ -455,13 +555,15 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
                     left: 20,
                     right: 20,
                     child: GestureDetector(
-                      onVerticalDragEnd: (DragEndDetails details) {
-                        Navigator.push(
+                      onVerticalDragEnd: (details) async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  Estimasi(result: result, points: points)),
+                            builder: (context) =>
+                                Estimasi(result: result, points: points),
+                          ),
                         );
+                        _resumePreviewIfNeeded(); // lanjutkan preview setelah kembali
                       },
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -516,6 +618,29 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
                     ),
                   );
                 },
+              ),
+            if (_isScanning)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(.55),
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(color: Colors.white),
+                        SizedBox(height: 16),
+                        Text(
+                          "Memproses gambar...",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
