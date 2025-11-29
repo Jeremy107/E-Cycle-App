@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 
 class Estimasi extends StatefulWidget {
   final String result; // Nama barang elektronik
-  final int points; // Points yang sudah dihitung dari harga
+  final int points; // Points yang sudah dihitung dari harga estimasi
+  final String condition; // Kondisi barang (excellent/good/fair/poor)
 
-  const Estimasi({super.key, required this.result, required this.points});
+  const Estimasi({
+    super.key,
+    required this.result,
+    required this.points,
+    required this.condition,
+  });
 
   @override
   State<Estimasi> createState() => _EstimasiState();
@@ -39,6 +45,77 @@ class _EstimasiState extends State<Estimasi> with TickerProviderStateMixin {
   String _formatRupiah(int hargaRp) {
     return hargaRp.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  }
+
+  Widget _buildConditionBadge(String condition) {
+    final conditionLower = condition.toLowerCase();
+    Color backgroundColor;
+    Color textColor;
+    String displayText;
+    IconData icon;
+
+    switch (conditionLower) {
+      case 'excellent':
+        backgroundColor = Colors.green.shade50;
+        textColor = Colors.green.shade700;
+        displayText = '✓ Kondisi Excellent';
+        icon = Icons.check_circle_rounded;
+        break;
+      case 'good':
+        backgroundColor = Colors.blue.shade50;
+        textColor = Colors.blue.shade700;
+        displayText = '◐ Kondisi Good';
+        icon = Icons.info_rounded;
+        break;
+      case 'fair':
+        backgroundColor = Colors.amber.shade50;
+        textColor = Colors.amber.shade700;
+        displayText = '△ Kondisi Fair';
+        icon = Icons.warning_rounded;
+        break;
+      case 'poor':
+        backgroundColor = Colors.red.shade50;
+        textColor = Colors.red.shade700;
+        displayText = '✗ Kondisi Poor';
+        icon = Icons.error_rounded;
+        break;
+      default:
+        backgroundColor = Colors.grey.shade50;
+        textColor = Colors.grey.shade700;
+        displayText = '? Kondisi Unknown';
+        icon = Icons.help_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: textColor.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: textColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            displayText,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -133,6 +210,8 @@ class _EstimasiState extends State<Estimasi> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      _buildConditionBadge(widget.condition),
                       const SizedBox(height: 28),
                       Text(
                         "Reward",

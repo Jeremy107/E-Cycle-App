@@ -29,6 +29,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
   bool _canTap = true; // Prevent multiple taps
   String result = 'Unknown';
   int points = 0;
+  String condition = 'unknown'; // Kondisi barang dari Gemini
 
   /* --------------------------------- variabel animasi ------------------------- */
   late final AnimationController _animationController;
@@ -199,7 +200,8 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _saveScanResult(String name, int earnedPoints) async {
+  Future<void> _saveScanResult(
+      String name, int earnedPoints, String condition) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     try {
@@ -212,6 +214,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
         'id': doc.id,
         'name': name,
         'points': earnedPoints,
+        'condition': condition,
         'createdAt': FieldValue.serverTimestamp(),
         'status': 'pending',
       });
@@ -230,18 +233,22 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
   Future<void> _classifyImage(File imageFile) async {
     try {
       setState(() => _isScanning = true);
-      // const apiKey = 'AIzaSyD8blGqOYS86v0zV50BW4csSp2tI4n_sZg';
-      const apiKey = 'AIzaSyC7t47pQmiVn3OJ-DvBGvKLu3Gwsz_iRHk';
+      log("📸 Starting image classification for: ${imageFile.path}");
+      log("📸 File exists: ${imageFile.existsSync()}");
+      log("📸 File size: ${imageFile.lengthSync()} bytes");
+
+      const apiKey = '';
 
       if (apiKey.isEmpty) {
         throw Exception('API key missing');
       }
 
       const prompt =
-          'Analyze this electronic device image. Return ONLY a JSON with: "name" (format: "<Electronic Type> - <Brand>" if brand present, else just "<Electronic Type>") and "price" (estimated original price in IDR as integer, e.g., 5000000 for 5 million rupiah). No other text.';
+          'You are an electronic device appraiser. Analyze this image of an electronic device and provide a JSON response.\n\nIMPORTANT: Return ONLY valid JSON, no other text.\n\nAnalyze the device:\n1. Identify the device type and brand (if visible)\n2. Estimate original retail price in IDR\n3. Assess condition based on visible damage\n4. Calculate estimated value\n\nCondition assessment guide:\n- excellent: No visible damage, like new condition\n- good: Minor scratches or marks, fully functional\n- fair: Noticeable damage (small cracks/dents), still functional\n- poor: Significant damage, broken parts, or severely worn\n\nPrice calculation:\n- excellent = 85% of original price\n- good = 70% of original price  \n- fair = 40% of original price\n- poor = 15% of original price\n\nReturn JSON with exactly these fields:\n{\n  "name": "Device Type - Brand (or just Device Type if brand unknown)",\n  "originalPrice": (integer, estimated original price in IDR),\n  "condition": "excellent|good|fair|poor",\n  "estimatedPrice": (integer, condition-based price in IDR)\n}';
 
       final imageBytes = await imageFile.readAsBytes();
       final mime = _detectMime(imageFile.path);
+      log("✓ Image read: ${imageBytes.length} bytes, mime: $mime");
 
       final content = [
         Content.multi([
@@ -249,57 +256,106 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
           DataPart(mime, imageBytes),
         ])
       ];
+      log("✓ Content prepared");
 
       final model = GenerativeModel(
         model: 'gemini-2.0-flash-lite',
         apiKey: apiKey,
         generationConfig: GenerationConfig(
-          temperature: 1,
+          temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 8192,
+          maxOutputTokens: 500,
           responseMimeType: 'application/json',
           responseSchema: Schema(
             SchemaType.object,
             properties: {
               "name": Schema(SchemaType.string),
-              "price": Schema(SchemaType.integer),
+              "originalPrice": Schema(SchemaType.integer),
+              "condition": Schema(SchemaType.string),
+              "estimatedPrice": Schema(SchemaType.integer),
             },
+            requiredProperties: [
+              "name",
+              "originalPrice",
+              "condition",
+              "estimatedPrice"
+            ],
           ),
         ),
       );
+      log("✓ Model initialized, sending request to Gemini...");
 
       final response = await model.generateContent(content);
+      log("✓ Response received from Gemini");
 
-      if (response.text != null) {
-        final responseJson = jsonDecode(response.text!);
-        final extractedName = responseJson['name'] ?? 'No result available';
-        final extractedPrice = responseJson['price'] ?? 0;
-        final calculatedPoints = (extractedPrice / 1000).toInt();
+      log("Response candidates count: ${response.candidates.length}");
+      if (response.candidates.isNotEmpty) {
+        final content = response.candidates.first.content;
+        log("First candidate content parts: ${content.parts.length}");
+        for (var i = 0; i < content.parts.length; i++) {
+          log("Part $i: ${content.parts[i].runtimeType} - ${content.parts[i]}");
+        }
+      }
 
-        setState(() {
-          result = extractedName;
-          points = calculatedPoints;
-        });
+      if (response.text != null && response.text!.isNotEmpty) {
+        try {
+          log("Raw response from Gemini: ${response.text}");
 
-        // Save the scan result with calculated points (status will be 'pending')
-        // Points will be added to user account only when status changes to 'success'
-        await _saveScanResult(result, calculatedPoints);
+          // Remove any whitespace and parse JSON
+          final cleanText = response.text!.trim();
+          final responseJson = jsonDecode(cleanText);
+
+          log("Parsed JSON: $responseJson");
+
+          final extractedName =
+              responseJson['name']?.toString() ?? 'No result available';
+          final estimatedPrice = (responseJson['estimatedPrice'] is int)
+              ? responseJson['estimatedPrice'] as int
+              : int.tryParse(
+                      responseJson['estimatedPrice']?.toString() ?? '0') ??
+                  0;
+          final extractedCondition =
+              responseJson['condition']?.toString() ?? 'unknown';
+          final calculatedPoints = (estimatedPrice / 1000).toInt();
+
+          log("✓ Extracted - Name: $extractedName, Price: $estimatedPrice, Condition: $extractedCondition, Points: $calculatedPoints");
+
+          setState(() {
+            result = extractedName;
+            points = calculatedPoints;
+            condition = extractedCondition;
+          });
+
+          // Save the scan result dengan kondisi dan calculated points (status will be 'pending')
+          await _saveScanResult(result, calculatedPoints, extractedCondition);
+        } catch (jsonError, stackTrace) {
+          log("❌ JSON parsing error: $jsonError", stackTrace: stackTrace);
+          setState(() {
+            result = 'Error parsing response';
+            points = 0;
+            condition = 'unknown';
+          });
+        }
       } else {
+        log("❌ Empty or null response from Gemini");
         setState(() {
           result = 'No result available';
           points = 0;
+          condition = 'unknown';
         });
       }
       // } catch (e, stackTrace) {
       //   log("Error classifying image: $e");
       //   log("Stack trace: $stackTrace");
       // }
+      await _updateMissionStatus();
     } catch (e, st) {
-      log("Classification error", error: e, stackTrace: st);
+      log("❌ CRITICAL Classification error: $e");
+      log("Stack trace: $st");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memproses gambar')),
+          SnackBar(content: Text('Gagal memproses gambar: $e')),
         );
       }
     } finally {
@@ -362,9 +418,6 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
             .doc(scanDocId);
         transaction.update(scanDoc, {'pointsAdded': true});
       });
-
-      // Update mission status after successful verification
-      await _updateMissionStatus();
 
       log('Points added successfully for scan: $scanDocId');
     } catch (e) {
@@ -559,8 +612,10 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                Estimasi(result: result, points: points),
+                            builder: (context) => Estimasi(
+                                result: result,
+                                points: points,
+                                condition: condition),
                           ),
                         );
                         _resumePreviewIfNeeded(); // lanjutkan preview setelah kembali
