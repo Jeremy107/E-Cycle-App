@@ -120,8 +120,8 @@ class _EstimasiState extends State<Estimasi> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Harga dalam Rp = points * 1000
-    final hargaRp = widget.points * 1000;
+    // Harga dalam Rp = points * 100
+    final hargaRp = widget.points * 100;
     final hargaFormatted = _formatRupiah(hargaRp);
     final pointText = widget.points.toString();
 
@@ -431,7 +431,7 @@ class _EstimasiState extends State<Estimasi> with TickerProviderStateMixin {
                                 "Pisahkan komponen atau minta bantuan tim E-Cycle"),
                             const SizedBox(height: 12),
                             _buildTipStep("03", "Antar ke Drop Point",
-                                "Kirim atau minta pickup dan terima E-Point reward!"),
+                                "Kirim dan terima E-Point reward!"),
                           ],
                         ),
                       ),

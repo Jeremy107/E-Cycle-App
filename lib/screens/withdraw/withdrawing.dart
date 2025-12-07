@@ -29,6 +29,13 @@ class _WithdrawingState extends State<Withdrawing> {
         .map((s) => s.data() ?? {});
   }
 
+  String _formatCurrency(int amount) {
+    return amount.toString().replaceAllMapped(
+          RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (Match match) => '.',
+        );
+  }
+
   Future<void> _submitWithdrawal() async {
     if (!_formKey.currentState!.validate()) return;
     final user = FirebaseAuth.instance.currentUser;
@@ -243,6 +250,9 @@ class _WithdrawingState extends State<Withdrawing> {
                           TextFormField(
                             controller: _amountController,
                             keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              setState(() {});
+                            },
                             style: AppStyles.titleStyle.copyWith(
                               fontSize: 16,
                               color: Colors.black87,
@@ -285,6 +295,118 @@ class _WithdrawingState extends State<Withdrawing> {
                               }
                               return null;
                             },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Conversion Card
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  accentColor.withOpacity(0.15),
+                                  accentColor.withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: accentColor.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.currency_exchange_rounded,
+                                      color: accentColor,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Konversi ke Rupiah',
+                                      style:
+                                          AppStyles.descriptionStyle.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Poin',
+                                          style: AppStyles.descriptionStyle
+                                              .copyWith(
+                                            fontSize: 11,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${_amountController.text.isEmpty ? 0 : int.tryParse(_amountController.text.trim()) ?? 0}',
+                                          style: AppStyles.titleStyle.copyWith(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                            color: accentColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_rounded,
+                                      color: accentColor.withOpacity(0.5),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'Rupiah',
+                                          style: AppStyles.descriptionStyle
+                                              .copyWith(
+                                            fontSize: 11,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Rp ${_formatCurrency((int.tryParse(_amountController.text.trim()) ?? 0) * 100)}',
+                                          style: AppStyles.titleStyle.copyWith(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Kurs: 1 Poin = Rp 100',
+                                  style: AppStyles.descriptionStyle.copyWith(
+                                    fontSize: 10,
+                                    color: Colors.grey.shade500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
 
                           const SizedBox(height: 20),

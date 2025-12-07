@@ -317,7 +317,7 @@ class _ScanState extends State<Scan> with TickerProviderStateMixin {
                   0;
           final extractedCondition =
               responseJson['condition']?.toString() ?? 'unknown';
-          final calculatedPoints = (estimatedPrice / 1000).toInt();
+          final calculatedPoints = (estimatedPrice / 100).toInt();
 
           log("✓ Extracted - Name: $extractedName, Price: $estimatedPrice, Condition: $extractedCondition, Points: $calculatedPoints");
 

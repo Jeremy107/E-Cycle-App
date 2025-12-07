@@ -1,4 +1,5 @@
 import 'package:e_cycle/constants/colors.dart';
+import 'package:e_cycle/constants/app_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,19 +22,7 @@ class ETaskPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(0, 148, 33, 1),
-        centerTitle: true,
-        title: const Text(
-          "E-Tasks",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      backgroundColor: primaryColor,
       body: StreamBuilder<Map<String, dynamic>>(
         stream: _fetchMissions(),
         builder: (context, snapshot) {
@@ -52,73 +41,75 @@ class ETaskPage extends StatelessWidget {
               .toList();
           return Column(
             children: [
-              // Tab Navigation
-              const Padding(
-                padding: EdgeInsets.all(8.0),
+              Container(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 50, bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primaryColor,
+                      primaryColor.withOpacity(0.8),
+                    ],
+                  ),
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _TaskTabButton(
-                      title: 'Tugas Harian',
-                      icon: Icons.chat_bubble_outline,
-                      selected: true,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.task_alt_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                    _TaskTabButton(
-                      title: 'Tugas Mingguan',
-                      icon: Icons.chat_bubble_outline,
-                      selected: false,
-                    ),
-                    _TaskTabButton(
-                      title: 'Semua Misi',
-                      icon: Icons.chat_bubble_outline,
-                      selected: false,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "E-Tasks",
+                            style: AppStyles.headerPageStyle.copyWith(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Kerjakan tugas dan dapatkan poin",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              // Task List
               Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Belum Selesai - ${incompleteMissions.length}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        ...incompleteMissions.map((entry) {
-                          final mission = entry.value;
-                          return TaskTile(
-                            icon: Icons.qr_code_scanner,
-                            title: mission['title'],
-                            description: mission['desc'],
-                            points: mission['points'],
-                          );
-                        }).toList(),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Sudah Selesai - ${completedMissions.length}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        ...completedMissions.map((entry) {
-                          final mission = entry.value;
-                          return TaskTile(
-                            icon: Icons.qr_code_scanner,
-                            title: mission['title'],
-                            description: mission['desc'],
-                            points: mission['points'],
-                            isDone: true,
-                          );
-                        }).toList(),
-                      ],
+                child: Container(
+                  padding: const EdgeInsets.only(
+                      left: 24, right: 24, bottom: 24, top: 28),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
                     ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: _buildTaskContent(
+                        incompleteMissions, completedMissions),
                   ),
                 ),
               ),
@@ -126,6 +117,69 @@ class ETaskPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildTaskContent(List<MapEntry<String, dynamic>> incomplete,
+      List<MapEntry<String, dynamic>> completed) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _TaskTabButton(
+                title: 'Tugas Harian',
+                icon: Icons.chat_bubble_outline,
+                selected: true,
+              ),
+              _TaskTabButton(
+                title: 'Tugas Mingguan',
+                icon: Icons.chat_bubble_outline,
+                selected: false,
+              ),
+              _TaskTabButton(
+                title: 'Semua Misi',
+                icon: Icons.chat_bubble_outline,
+                selected: false,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Belum Selesai - ${incomplete.length}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        ...incomplete.map((entry) {
+          final mission = entry.value;
+          return TaskTile(
+            icon: Icons.qr_code_scanner,
+            title: mission['title'],
+            description: mission['desc'],
+            points: mission['points'],
+          );
+        }).toList(),
+        const SizedBox(height: 20),
+        Text(
+          'Sudah Selesai - ${completed.length}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        ...completed.map((entry) {
+          final mission = entry.value;
+          return TaskTile(
+            icon: Icons.qr_code_scanner,
+            title: mission['title'],
+            description: mission['desc'],
+            points: mission['points'],
+            isDone: true,
+          );
+        }).toList(),
+      ],
     );
   }
 

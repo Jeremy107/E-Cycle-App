@@ -1,23 +1,32 @@
-import 'package:e_cycle/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:e_cycle/constants/app_styles.dart';
 
 Widget Header = Container(
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
   child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white)),
-      const Text(
-        "Profil",
-        style: TextStyle(fontSize: 24, color: Colors.white),
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.person_rounded,
+          color: Colors.white,
+          size: 28,
+        ),
       ),
-      IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.edit,
-            color: Colors.white,
-          ))
+      const SizedBox(width: 12),
+      Text(
+        "Profil",
+        style: AppStyles.titleStyle.copyWith(
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
     ],
   ),
 );
